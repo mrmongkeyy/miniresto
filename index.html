@@ -148,7 +148,7 @@
 		localStorage.setItem('minirestosavedata',JSON.stringify({stufStok:engine.globalObjects.game.stufStok,stats:engine.globalObjects.game.stats}));
 	}
 	const engine = new Engine({
-		dev:false,
+		dev:true,
 		displayLoadPercent(percent){
 			find('#loadingpercent').innerHTML = `loading assets ${percent}%...`;
 			if(percent === 100)
