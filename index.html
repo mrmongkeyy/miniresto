@@ -1,0 +1,1828 @@
+<head>
+	<title>Mini Resto: Game simulator menyenangkan!</title>
+	<meta name="viewport" 
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <script src="https://integration.gamepix.com/sdk/v3/gamepix.sdk.js"></script>
+</head>
+<style>
+	@font-face{
+		font-family: 'winterdrink';
+		src:url('./assets/font/Winter Drink.ttf');
+	}
+	body{
+		padding:0;
+		margin: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background: #205295;
+		overflow: hidden;
+		font-family: 'winterdrink';
+		user-select: none;-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+	}
+	img{
+		-webkit-user-drag: none;
+	}
+	canvas{
+		image-rendering: pixelated;
+		cursor: none;
+		border:2px solid white;
+		border-radius: 10px;
+	}
+	#gamenav div:hover{
+		color:#2196f3;
+	}
+	@media screen and (max-width:600px){
+		canvas{
+			border: none;
+		}
+	}
+</style>
+<body>
+	<div id=loadingscreen style="
+		position: absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height: 100%;
+		background: #205295;
+		display: flex;
+		font-size: 24px;
+		font-weight: bold;
+		align-items: center;
+		flex-direction: column;justify-content: center;
+		gap: 10px;
+		color:white;z-index: 2;cursor: default;
+	">
+		<div>neonstudio present</div>
+		<div style=font-size:12px; id=loadingpercent>loading assets 0%...</div>
+	</div>
+	<div id=mainMenu style="
+		position: absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height: 100%;
+		background: #205295;
+		display: flex;
+		font-size: 24px;
+		font-weight: bold;
+		align-items: center;
+		flex-direction: column;justify-content: center;
+		gap: 10px;
+		color:white;z-index: 1;cursor: default;
+	">
+		<div>
+			<img src=./assets/minirestoicon.png>
+		</div>
+		<div>
+			Mini Resto
+		</div>
+		<div style="
+			font-size: 12px;
+	    color: #2196f3;
+		">Bisnis resto simulator: Kembangkan bisnismu!!!</div>
+		<div style="
+			margin-top:20px;
+			text-align: center;
+			display: flex;
+			gap: 10px;
+			flex-direction: column;
+			font-size: 16px;
+		" id=gamenav>
+			<div style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=play(this,false)>Game Baru</div>
+			<div id=continuebutton style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=play(this,true)>Lanjutkan</div>
+			<div id=continuebutton style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=play(this,true) hidden>Tutorial</div>
+			<div id=continuebutton style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=play(this,true) hidden>LeaderBoard</div>
+		</div>
+		<div style="
+			font-size: 11px;
+			bottom:32px;
+			position: absolute;
+		">&copy 2024 neonstudio. Allright served.</div>
+	</div>
+	<div id=gameOver style="
+		position: absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height: 100%;
+		background: #205295;
+		display: none;
+		font-size: 24px;
+		font-weight: bold;
+		align-items: center;
+		flex-direction: column;justify-content: center;
+		gap: 10px;
+		color:white;z-index: 1;cursor: default;
+	">
+		<div>
+			<img src=./assets/gameoverimglabel.png>
+		</div>
+		<div>
+			Game Over!
+		</div>
+		<div style="
+			font-size: 12px;
+	    color: #2196f3;
+		" id=go-message-label>Bisnis resto simulator: Kembangkan bisnismu!!!</div>
+		<div style="
+			margin-top:20px;
+			text-align: center;
+			display: flex;
+			gap: 10px;
+			flex-direction: column;
+			font-size: 16px;
+		" id=gamenav>
+			<div style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=newGame(true)>New Game</div>
+			<div id=continuebutton style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=showMainMenu()>Main Menu</div>
+		</div>
+		<div style="
+			font-size: 11px;
+			bottom:32px;
+			position: absolute;
+		">&copy 2024 neonstudio. Allright served.</div>
+	</div>
+	<div id=pausedmenu style="
+		position: absolute;
+		top:0;
+		left:0;
+		width:100%;
+		height: 100%;
+		background: #205295;
+		display: none;
+		font-size: 24px;
+		font-weight: bold;
+		align-items: center;
+		flex-direction: column;justify-content: center;
+		gap: 10px;
+		color:white;z-index: 1;cursor: default;
+	">
+		<div>
+			<img src=./assets/gameoverimglabel.png>
+		</div>
+		<div>
+			Game Paused!
+		</div>
+		<div style="
+			font-size: 12px;
+	    color: #2196f3;
+		" id=go-message-label>Comeone Broo!</div>
+		<div style="
+			margin-top:20px;
+			text-align: center;
+			display: flex;
+			gap: 10px;
+			flex-direction: column;
+			font-size: 16px;
+		" id=gamenav>
+			<div style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=continueGame()>Continue</div>
+			<div id=continuebutton style="
+				padding:10px;
+				border-radius: 10px;cursor: pointer;
+			" onclick=showMainMenu()>Main Menu</div>
+		</div>
+		<div style="
+			font-size: 11px;
+			bottom:32px;
+			position: absolute;
+		">&copy 2024 neonstudio. Allright served.</div>
+	</div>
+</body>
+<script src=./js/utils.js></script>
+<script src=./js/engine.js></script>
+<script>
+	const saveData = JSON.parse(GamePix.localStorage.getItem('minirestosavedata'));
+	const globalPlayerScore = 0;
+	const globalPlayerLevel = 1;
+	if(!saveData)
+		find('#continuebutton').remove();
+
+	const newGame = (isFailed)=>{
+		if(isFailed){
+			//remove the old data
+			find('#gameover').hide();
+			engine.globalObjects.game.newGame();
+		}
+	}
+	const play = async (el,isContinue=false)=>{
+		//loading font
+		const gameFont = new FontFace('gamefont','url("./assets/font/Winter Drink.ttf")');
+		const font = await gameFont.load();
+		document.fonts.add(font);
+		if(isContinue && saveData){
+			engine.globalObjects.game.stats = saveData.stats;
+			engine.globalObjects.game.stufStok = saveData.stufStok;
+			//bill data also
+			engine.globalObjects.game.prive = saveData.prive;
+			engine.globalObjects.game.payingPriveTime = saveData.payingPriveTime;
+		}else{
+			GamePix.localStorage.removeItem('minirestosavedata');
+		}
+
+		const adresult = await GamePix.interstitialAd();
+		console.log('interstitialAd onPlay result:', JSON.stringify(adresult));
+		
+
+		engine.globalObjects.game.run = true;
+		engine.globalObjects.game.newGame();
+		if(engine.paused){
+			engine.resume();
+		}
+		engine.assets.audio.bgmusic.play();
+		find('#mainMenu').hide();
+	}
+	const gamePause = ()=>{
+		find('#pausedmenu').show();
+	}
+	const continueGame = async ()=>{
+		const result = await GamePix.interstitialAd();
+		console.log('interstitialAd continue result:', JSON.stringify(result));
+		engine.resume();
+		find('#pausedmenu').hide();
+	}
+	const showGameOver = async (gameovermessage)=>{
+		const result = await GamePix.interstitialAd();
+		console.log('interstitialAd onGameOver result:', JSON.stringify(result));
+		find('#go-message-label').innerHTML = gameovermessage;
+		find('#gameover').show();
+	}
+	const showMainMenu = async ()=>{
+		const result = await GamePix.interstitialAd();
+		console.log('interstitialAd quitGame result:', JSON.stringify(result));
+		find('#gameover').hide();
+		find('#pausedmenu').hide();
+		find('#mainMenu').show('flex');
+	}
+	const save = ()=>{
+		GamePix.localStorage.setItem('minirestosavedata',JSON.stringify({stufStok:engine.globalObjects.game.stufStok,stats:engine.globalObjects.game.stats,prive:engine.globalObjects.game.prive,payingPriveTime:engine.globalObjects.game.payingPriveTime}));
+	}
+	const engine = new Engine({
+		dev:true,
+		displayLoadPercent(percent){
+			find('#loadingpercent').innerHTML = `loading assets ${percent}%...`;
+			if(percent === 100)
+				find('#loadingscreen').remove();
+		},
+		toLoad:[
+			{
+				id:'bgmusic',
+				type:'audio',
+				src:'./assets/audios/bgmusic.mp3',
+				loop:true
+			},
+			{
+				id:'gameover',
+				type:'audio',
+				src:'./assets/audios/gameover.wav'
+			},
+			{
+				id:'tap',
+				type:'audio',
+				src:'./assets/audios/tap.wav'
+			},
+			{
+				id:'points',
+				type:'audio',
+				src:'./assets/audios/points.wav'
+			},
+			{
+				id:'normalcursor',
+				type:'img',
+				src:'./assets/neocursor.png'
+			},
+			{
+				id:'chef',
+				type:'img',
+				src:'./assets/chef.png'
+			},
+			{
+				id:'backchef',
+				type:'img',
+				src:'./assets/chef.png'
+			},
+			{
+				id:'receptionist',
+				type:'img',
+				src:'./assets/secretary.png'
+			},
+			{
+				id:'servebutton',
+				type:'img',
+				src:'./assets/sajikan.png'
+			},
+			{
+				id:'kentanggoreng',
+				type:'img',
+				src:'./assets/kentanggoreng1.png'
+			},
+			{
+				id:'pizza',
+				type:'img',
+				src:'./assets/pizza1.png'
+			},
+			{
+				id:'hamburger',
+				type:'img',
+				src:'./assets/hamburger1.png'
+			},
+			{
+				id:'pie',
+				type:'img',
+				src:'./assets/pie1.png'
+			},
+			{
+				id:'nachos',
+				type:'img',
+				src:'./assets/nachos1.png'
+			},
+			{
+				id:'hotdog',
+				type:'img',
+				src:'./assets/hotdog1.png'
+			},
+			{
+				id:'jagung',
+				type:'img',
+				src:'./assets/jagung1.png'
+			},
+			{
+				id:'cupcake',
+				type:'img',
+				src:'./assets/cupcake1.png'
+			},
+			{
+				id:'nasigoreng',
+				type:'img',
+				src:'./assets/nasigoreng.png'
+			},
+			{
+				id:'moneyicon',
+				type:'img',
+				src:'./assets/moneyicon.png'
+			},
+			{
+				id:'trash',
+				type:'img',
+				src:'./assets/trashicon.png'
+			},
+			{
+				id:'senang',
+				type:'img',
+				src:'./assets/senangicon.png'
+			},
+			{
+				id:'marah',
+				type:'img',
+				src:'./assets/marahicon.png'
+			},
+			{
+				id:'timeup',
+				type:'img',
+				src:'./assets/timeup.png'
+			},
+			{
+				id:'timeup1',
+				type:'img',
+				src:'./assets/timeup1.png'
+			},
+			{
+				id:'visitor1',
+				type:'img',
+				src:'./assets/visitor/1.png'
+			},
+			{
+				id:'visitor2',
+				type:'img',
+				src:'./assets/visitor/2.png'
+			},
+			{
+				id:'visitor3',
+				type:'img',
+				src:'./assets/visitor/3.png'
+			},
+			{
+				id:'visitor4',
+				type:'img',
+				src:'./assets/visitor/4.png'
+			},
+			{
+				id:'visitor5',
+				type:'img',
+				src:'./assets/visitor/5.png'
+			},
+			{
+				id:'visitor6',
+				type:'img',
+				src:'./assets/visitor/6.png'
+			},
+			{
+				id:'market',
+				type:'img',
+				src:'./assets/store.png'
+			},
+			{
+				id:'quitgame',
+				type:'img',
+				src:'./assets/quitgameicon.png'
+			},
+			{
+				id:'levelup',
+				type:'img',
+				src:'./assets/levelup.png'
+			},
+			{
+				id:'bank',
+				type:'img',
+				src:'./assets/bank.png'
+			}
+		],
+		canvasSettings:{
+			width:360,
+			height:640,
+			background:'#205295',
+			mobileResponsive:true
+		}
+	});
+	const eatingRoom = engine.newScene('eatingRoom');
+	engine.changeScene('eatingRoom');
+	eatingRoom.addObject(engine.newObject('game',null,null,{
+		position:vector2(0,0),navigations:[],state:1,run:false,
+		tablesScheme:[3,3],tables:[],cookingmachine:[],
+		newGame(){
+			this.stats = this.oldStats;
+			this.stufStok = this.oldStufStok;
+			this.tables = [];
+			this.generateTables();
+			this.buttons = this.tables.concat(this.navigations,this.cookingmachine,this.store,this.upgradeStore,this.bank);
+			this.prive = 0;
+			this.payingPriveTime = 0;
+			this.lastBorrowingTime = null;
+			this.engine.viewport.y = 0;
+			this.engine.state = 1;
+			this.engine.assets.audio.bgmusic.play();
+			this.run = true;
+		},
+		cursor:{
+			state:'normal',
+			position:engine.getCanvasCenter(),
+			size:vector2(32,32),
+			draw(parent){
+				parent.engine.g.sprite(parent.engine.assets.img[`${this.state}cursor`],this.position,this.size);
+			},
+			update(parent){
+				this.position = parent.engine.getNormalizedMousePos();
+			}
+		},headerUi:[],stats:{
+			happy:0,anger:0,timeup:0,money:0,levelup:1
+		},oldStats:{
+			happy:0,anger:0,timeup:0,money:0,levelup:1
+		},
+		statsAchieves:[],oldStufStok:{
+			nasigoreng:{
+				left:10,
+				price:10000,
+				storePrice:8500,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			jagung:{
+				left:10,
+				price:5000,
+				storePrice:3000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			nachos:{
+				left:10,
+				price:3000,
+				storePrice:1500,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			pizza:{
+				left:10,
+				price:20000,
+				storePrice:15000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			hotdog:{
+				left:10,
+				price:5000,
+				storePrice:3500,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			pie:{
+				left:10,
+				price:10000,
+				storePrice:7000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			cupcake:{
+				left:10,
+				price:15000,
+				storePrice:10000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			hamburger:{
+				left:10,
+				price:5000,
+				storePrice:3000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			kentanggoreng:{
+				left:10,
+				price:10000,
+				storePrice:8000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			}
+		},stufStok:{
+			nasigoreng:{
+				left:10,
+				price:10000,
+				storePrice:8500,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			jagung:{
+				left:10,
+				price:5000,
+				storePrice:3000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			nachos:{
+				left:10,
+				price:3000,
+				storePrice:1500,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			pizza:{
+				left:10,
+				price:20000,
+				storePrice:15000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			hotdog:{
+				left:10,
+				price:5000,
+				storePrice:3500,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			pie:{
+				left:10,
+				price:10000,
+				storePrice:7000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			cupcake:{
+				left:10,
+				price:15000,
+				storePrice:10000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			hamburger:{
+				left:10,
+				price:5000,
+				storePrice:3000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			},
+			kentanggoreng:{
+				left:10,
+				price:10000,
+				storePrice:8000,
+				leftMax:10,
+				upgradeValue:10,
+				upgradePrice:50000
+			}
+		},
+		generateHeaderUi(){
+			const canvasInfo = this.engine.getCanvasInfo();
+			this.headerUi.push({
+				position:vector2(canvasInfo.width/2,32),
+				size:vector2(canvasInfo.width,64),
+				fill:true,
+				color:'#205295'
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*1/10,32-8),
+				size:vector2(26,26),
+				fill:true,
+				color:'#205295',
+				img:'moneyicon',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*1/10,54),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'money',
+				isMoney:true
+			})
+
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*3/10,32-8),
+				size:vector2(24,24),
+				fill:true,
+				color:'#205295',
+				img:'senang',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*3/10,54),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'happy'
+			})
+
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*5/10,32-8),
+				size:vector2(24,24),
+				fill:true,
+				color:'#205295',
+				img:'marah',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*5/10,54),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'anger'
+			})
+
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*7/10,32-8),
+				size:vector2(24,24),
+				fill:true,
+				color:'#205295',
+				img:'timeup',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*7/10,54),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'timeup'
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*9/10,32-8),
+				size:vector2(24,24),
+				fill:true,
+				color:'#205295',
+				img:'levelup',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width*9/10,54),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'levelup'
+			})
+			const marginTop = -420;
+			this.headerUi.push({
+				position:vector2(canvasInfo.width/2,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 132 + marginTop),
+				size:vector2(26,26),
+				fill:true,
+				color:'#205295',
+				img:'moneyicon',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2,
+				hideBox2d:true,
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width/2,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 132 + marginTop + 25),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'money',
+				hideBox2d:true,
+				isMoney:true
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width/2,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 132 + marginTop-50),
+				size:vector2(26,26),
+				fill:true,
+				color:'#205295',
+				img:'moneyicon',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2,
+				hideBox2d:true,
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width/2,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 132 + marginTop-25),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'money',
+				hideBox2d:true,
+				isMoney:true
+			})
+
+			this.headerUi.push({
+				position:vector2(canvasInfo.width/2,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 132 + marginTop-124),
+				size:vector2(26,26),
+				fill:true,
+				color:'#205295',
+				img:'levelup',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2,
+				hideBox2d:true,
+			})
+			this.headerUi.push({
+				position:vector2(canvasInfo.width/2,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 132 + marginTop - 105),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'levelup',
+				hideBox2d:true,
+				isMoney:true
+			})
+
+			this.headerUi.push({
+				position:vector2(
+					canvasInfo.width*1/4,
+					canvasInfo.height*4 - 68 * 2 - 88
+				),
+				size:vector2(26,26),
+				fill:true,
+				color:'#205295',
+				img:'moneyicon',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2,
+				hideBox2d:true,
+			})
+			this.headerUi.push({
+				position:vector2(
+					canvasInfo.width*1/4,
+					canvasInfo.height*4 - 68 * 2 - 60
+				),
+				size:'12px',fontStyle:'Calibri',
+				fill:true,
+				color:'#205295',
+				text:'money',
+				hideBox2d:true,
+				isMoney:true
+			})
+		},
+		generateCustomerNeed(){
+			const objective = [];
+			const objs = ['pie','pizza','hotdog','cupcake','nasigoreng','jagung','nasigoreng','kentanggoreng','hamburger','nachos'];
+			for(let i=0;i<3;i++){
+				objective.push(objs[Math.floor(Math.random()*objs.length)]);
+			}
+			return objective;
+		},
+		gameOver(message){
+			this.run = false;
+			save();
+			//turn of all music.
+			for(let i in this.engine.assets.audio){
+				this.engine.assets.audio[i].pause();
+			}
+			this.engine.assets.audio.gameover.play();
+			showGameOver(message);
+		},
+		generateTables(){
+			const marginTop = 64;
+			const slicedWidth = (this.engine.config.canvasSettings.width || this.engine.canvasSettings.width)/this.tablesScheme[1];
+			const slicedHeight = (this.engine.config.canvasSettings.height || this.engine.canvasSettings.height)/(this.tablesScheme[0]+1);
+			const xpos = slicedWidth/2;
+			const ypos = slicedHeight/2;
+			for(let y=0;y<this.tablesScheme[0];y++){
+				for(let x=0;x<this.tablesScheme[1];x++){
+					const table = {
+						table:true,visitorId:`visitor${Math.floor(Math.random()*6)+1}`,
+						getVisitorId(){
+							let newVisitorId = `visitor${Math.floor(Math.random()*6)+1}`;
+							while(newVisitorId === this.visitorId){
+								newVisitorId = `visitor${Math.floor(Math.random()*6)+1}`;
+							}
+							return newVisitorId;
+						},waitTime:30,waitTimeReset(bonus=false){
+							if(!bonus)
+								return	this.waitTime = 30;
+							this.waitTime = this.waitTime + 30 + engine.globalObjects.game.stats.happy * .05;
+						},
+						powerUp:0,powerUpValue:0,
+						color:'gray',fill:false,
+						position:vector2(xpos+(x)*slicedWidth,ypos+slicedHeight*(y)+marginTop),
+						normalButtonSize:vector2(slicedWidth-16,slicedHeight-16),
+						bigButtonSize:vector2(slicedWidth-8,slicedHeight-8),
+						size:vector2(slicedWidth-16,slicedHeight-16),
+						objective:this.generateCustomerNeed(),showedTimeLeft:150,defaultShowedTimeLeft:150,showedExpressionLeftTime:50,defaultShowedExpressionLeftTime:50,
+						scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2,
+						getPowerUp(){
+							const powers = [0,0,0,0,0,0,0,0,0,1,2,3,4,5];
+							this.powerUp = powers[Math.floor(Math.random()*powers.length)];
+							if(this.powerUp)
+								this.powerUpValue = Math.floor(Math.random()*50) + 11;
+						}
+					}
+					table.getPowerUp();
+					this.tables.push(table);
+				}
+			}
+		},
+		generateNavigationButtons(){
+			const canvasInfo = this.engine.getCanvasInfo();
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*1/6,
+					canvasInfo.height - 32
+				),
+				size:vector2(canvasInfo.width/3,64),
+				id:'quitgame',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*3/6,
+					canvasInfo.height - 32
+				),
+				size:vector2(canvasInfo.width/3,64),
+				id:'receptionist',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*5/6,
+					canvasInfo.height - 32
+				),
+				size:vector2(canvasInfo.width/3,64),
+				id:'chef',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*1/6,
+					canvasInfo.height*2 - 32 - 68 + 5
+				),
+				size:vector2(canvasInfo.width/3,64),
+				id:'servebutton',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*3/6,
+					canvasInfo.height*2 - 32 - 68 + 5
+				),
+				size:vector2(canvasInfo.width/3,64),
+				id:'trash',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*5/6,
+					canvasInfo.height*2 - 32 - 68 + 5
+				),
+				size:vector2(canvasInfo.width/3,64),
+				id:'market',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*1/4,
+					canvasInfo.height*3 - 68 * 2 - 20
+				),
+				size:vector2(canvasInfo.width/2,64),
+				id:'levelup',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*3/4,
+					canvasInfo.height*3 - 68 * 2 - 20
+				),
+				size:vector2(canvasInfo.width/2,64),
+				id:'bank',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+
+			this.navigations.push({
+				position:vector2(
+					canvasInfo.width*3/4,
+					canvasInfo.height*4 - 68 * 2 - 82
+				),
+				size:vector2(canvasInfo.width/2,64),
+				id:'receptionist',
+				color:'gray',fill:true,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			});
+		},
+		cookingMachineItemSelectorPointer:3,
+		generateCookingMachine(){
+			const canvasInfo = this.engine.getCanvasInfo();
+			const marginTop = 16;
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 2 - canvasInfo.height/2 - 260 + marginTop),
+				size:vector2(canvasInfo.width/3-11,105),
+				fill:true,color:'white',
+				tag:'cookingmachine',boxmaker:true
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 2 - canvasInfo.height/2 - 260 + marginTop),
+				size:vector2(canvasInfo.width/3-11,105),
+				fill:true,color:'white',tag:'cookingmachine',boxmaker:true
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 2 - canvasInfo.height/2 - 260 + marginTop),
+				size:vector2(canvasInfo.width/3-11,105),
+				fill:true,color:'white',tag:'cookingmachine',boxmaker:true
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 2 - canvasInfo.height/2-260 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#144272',
+				tag:'cookingmachine',item:null,boxmaker:true
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 2 - canvasInfo.height/2 - 260 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#144272',tag:'cookingmachine',boxmaker:true
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 2 - canvasInfo.height/2 - 260 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#144272',tag:'cookingmachine',item:null,boxmaker:true
+			})
+			//
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 2 - canvasInfo.height/2 - 150 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',
+				tag:'cookingmachine',
+				img:'kentanggoreng',flabel:'cookingInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 2 - canvasInfo.height/2 - 150 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'pizza',flabel:'cookingInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 2 - canvasInfo.height/2 - 150 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'hamburger',flabel:'cookingInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 2 - canvasInfo.height/2 - 50 + 16 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',flabel:'cookingInput',
+				tag:'cookingmachine',
+				img:'hotdog',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 2 - canvasInfo.height/2 - 50 + 16 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'nachos',flabel:'cookingInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 2 - canvasInfo.height/2 - 50 + 16 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'pie',flabel:'cookingInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 2 - canvasInfo.height/2 - 50 + 132 + 32),
+				size:vector2(canvasInfo.width/3-16,100),flabel:'cookingInput',
+				fill:true,color:'#205295',
+				tag:'cookingmachine',
+				img:'jagung',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 2 - canvasInfo.height/2 - 50 + 132 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'cupcake',flabel:'cookingInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.cookingmachine.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 2 - canvasInfo.height/2 - 50 + 132 + 32),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'nasigoreng',flabel:'cookingInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+		},
+		store:[],
+		generateStoreItem(){
+			const canvasInfo = this.engine.getCanvasInfo();
+			const marginTop = -100;
+			//
+			this.store.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 3 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',
+				tag:'cookingmachine',
+				img:'kentanggoreng',flabel:'storeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.store.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 3 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'pizza',flabel:'storeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.store.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 3 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'hamburger',flabel:'storeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.store.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 16 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',flabel:'storeInput',
+				tag:'cookingmachine',
+				img:'hotdog',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.store.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 16 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'nachos',flabel:'storeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.store.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 16 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'pie',flabel:'storeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.store.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 132 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),flabel:'storeInput',
+				fill:true,color:'#205295',
+				tag:'cookingmachine',
+				img:'jagung',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.store.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 132 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'cupcake',flabel:'storeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.store.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 3 - canvasInfo.height/2 - 50 + 132 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'nasigoreng',flabel:'storeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+		},
+		upgradeStore:[],
+		generateUpgradeItem(){
+			const canvasInfo = this.engine.getCanvasInfo();
+			const marginTop = -150;
+			//
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 4 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',
+				tag:'cookingmachine',
+				img:'kentanggoreng',flabel:'upgradeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 4 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'pizza',flabel:'upgradeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 4 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'hamburger',flabel:'upgradeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 16 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',flabel:'upgradeInput',
+				tag:'cookingmachine',
+				img:'hotdog',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 16 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'nachos',flabel:'upgradeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 16 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'pie',flabel:'upgradeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 132 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),flabel:'upgradeInput',
+				fill:true,color:'#205295',
+				tag:'cookingmachine',
+				img:'jagung',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 132 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'cupcake',flabel:'upgradeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.upgradeStore.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 4 - canvasInfo.height/2 - 50 + 132 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',img:'nasigoreng',flabel:'upgradeInput',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+		},bank:[],
+		generateBankItem(){
+			const canvasInfo = this.engine.getCanvasInfo();
+			const marginTop = -250;
+			//
+			this.bank.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 5 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',estimate:50,fee:1000,neededLevel:1,value:50000,
+				tag:'cookingmachine',flabel:'borrowBank',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.bank.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 5 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),estimate:100,fee:2000,neededLevel:2,value:100000,
+				fill:true,color:'#205295',tag:'cookingmachine',flabel:'borrowBank',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.bank.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 5 - canvasInfo.height/2 - 150 + marginTop),
+				size:vector2(canvasInfo.width/3-16,100),estimate:150,fee:5000,neededLevel:3,value:150000,
+				fill:true,color:'#205295',tag:'cookingmachine',img:'hamburger',flabel:'borrowBank',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.bank.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 16 + marginTop + 35),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',flabel:'borrowBank',
+				tag:'cookingmachine',estimate:200,fee:7000,neededLevel:4,value:210000,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.bank.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 16 + marginTop + 35),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',estimate:250,fee:8000,neededLevel:5,value:250000,flabel:'borrowBank',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.bank.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 16 + marginTop + 35),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',estimate:300,fee:9000,neededLevel:6,value:300000,flabel:'borrowBank',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+
+			this.bank.push({
+				position:vector2(canvasInfo.width/6,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 132 + marginTop + 70),
+				size:vector2(canvasInfo.width/3-16,100),flabel:'borrowBank',
+				fill:true,color:'#205295',
+				tag:'cookingmachine',estimate:400,fee:12000,neededLevel:7,value:350000,
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.bank.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width/3,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 132 + marginTop + 70),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',estimate:500,fee:15000,neededLevel:8,value:450000,flabel:'borrowBank',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+			this.bank.push({
+				position:vector2(canvasInfo.width/6 + canvasInfo.width*2/3,canvasInfo.height * 5 - canvasInfo.height/2 - 50 + 132 + marginTop + 70),
+				size:vector2(canvasInfo.width/3-16,100),
+				fill:true,color:'#205295',tag:'cookingmachine',estimate:600,fee:20000,neededLevel:9,value:500000,flabel:'borrowBank',
+				scaleImage:1,scaleImageMinSpeed:.01,scaleImageDir:1,scaleImageMinValue:.8,scaleImageMaxValue:1.2
+			})
+		},
+		setCookingMachineNull(){
+			for(let i=0;i<3;i++){
+				this.cookingmachine[i+3].item = null;
+			}
+			this.cookingMachineItemSelectorPointer = 3;
+		},
+		getFoodToServe(objective){
+			const foodToServe = {valid:true,data:[]};
+			let income = 0;
+			for(let i=5;i>=3;i--){
+				if(!this.cookingmachine[i].item){
+					foodToServe.valid = false;
+					break;
+				}
+				foodToServe.data.push(this.cookingmachine[i].item);
+				income += this.stufStok[this.cookingmachine[i].item].price;
+			}
+			if(objective.length === 0)
+				return false;
+			if(objective.toString() === foodToServe.data.toString())
+				return income;
+			return false;
+		},prive:0,payingPriveTime:0,lastBorrowingTime:null,borrowTimeLimit:600000,
+		newBorrowMoneyData(param){
+			if(this.lastBorrowingTime && this.lastBorrowingTime - new Date().getTime() < this.borrowTimeLimit){
+				console.log('Peminjaman tidak berhasil dilakukan, time limit! 1 jam');
+				return;
+			}
+			/*
+				if user make new borrow, the last borrow must be paid.
+			*/
+			if(this.prive && this.stats.money >= this.prive){
+				const priveValue = this.prive;
+				this.prive -= this.stats.money;
+				this.stats.money -= priveValue;
+				this.payingPriveTime = 0;
+			}
+			this.stats.money += param.value;
+			this.prive = this.prive + param.value + param.fee;
+			this.payingPriveTime += param.estimate;
+			this.lastBorrowingTime = new Date().getTime();
+		},
+		init(){
+			this.generateHeaderUi();
+			this.generateTables();
+			this.generateNavigationButtons();
+			this.generateCookingMachine();
+			this.generateStoreItem();
+			this.generateUpgradeItem();
+			this.generateBankItem();
+			this.buttons = this.tables.concat(this.navigations,this.cookingmachine,this.store,this.upgradeStore,this.bank);
+			// this.engine.assets.audio.bgmusic.play();
+		},changeroom:false,changeroomoptions:{
+			bottom:{dir:-1,max:-577},
+			top:{dir:1,max:0},
+			market:{dir:-1,max:-577*2},
+			backchef:{dir:1,max:-577},
+			upstore:{dir:-1,max:-577*3},
+			backmarket:{dir:1,max:-577*2},
+			gobank:{dir:-1,max:-577*4 - 2.5}
+		},changeroomspeed:50,changeroomdir:null,
+		delayMax:2,delaySpeed:.1,delay:4,
+		newAchiveStat(position,label,target){
+			save();
+			return {
+				position,
+				label,
+				target,dir:position.angle(target),
+				size:vector2(32,32),
+				speed:500
+			}
+		},
+		updateLevel(){
+			let text = 0;count = 0;
+			for(let i in this.stufStok){
+				text += this.stufStok[i].leftMax;
+				count += 10;
+			}
+			text = Math.round(text/count);
+			this.stats.levelup = text;
+			GamePix.updateLevel(text);
+		},
+		update(){
+			if(!this.run)
+				return;
+			if(this.changeroom){
+				this.engine.viewport.y += this.changeroomspeed * this.changeroomoptions[this.changeroomdir].dir;
+				if(this.changeroomdir === 'bottom' || this.changeroomdir === 'market' || this.changeroomdir === 'upstore' || this.changeroomdir === 'gobank'){
+					if(this.engine.viewport.y <= this.changeroomoptions[this.changeroomdir].max){
+						this.changeroom = false;
+						this.engine.viewport.y = this.changeroomoptions[this.changeroomdir].max;
+					}
+				}
+				else{
+					if(this.engine.viewport.y >= this.changeroomoptions[this.changeroomdir].max){
+						this.changeroom = false;
+						this.engine.viewport.y = this.changeroomoptions[this.changeroomdir].max;
+					}
+				}
+			}
+			this.cursor.update(this);
+			//count down prive payment time.
+			if(this.prive){
+				this.payingPriveTime -= this.engine.delta;
+				if(this.payingPriveTime <= 0){
+					if(this.stats.money < this.prive){
+						return this.gameOver('Game over, failure to pay debt');
+					}
+					this.stats.money -= this.prive;
+					this.prive = 0;
+					this.payingPriveTime = 0;
+					// this.specialAds('bank',50);
+				}	
+			}
+			//update the achievements
+			const newAchieve = [];
+			this.statsAchieves.forEach(stats=>{
+				stats.position = stats.position.add(vector2(-Math.cos(stats.dir) * stats.speed * this.engine.delta,-Math.sin(stats.dir) * stats.speed * this.engine.delta));
+				stats.size = stats.size.subs(vector2(1,1));
+				if(stats.target.subs(stats.position).mag() < 10){
+					stats.disapper = true;
+				}
+			})
+			this.statsAchieves.forEach(stats=>{
+				if(!stats.disapper)
+					newAchieve.push(stats);
+			})
+			this.statsAchieves = newAchieve;
+			if(this.delay < this.delayMax){
+				this.delay += this.delaySpeed;
+				if(this.delay >= this.delayMax){
+					this.delay = this.delayMax;
+				}
+				return;
+			}
+			for(let i=0;i<this.buttons.length;i++){
+				const button = this.buttons[i];
+				if(button.id && button.id === 'backgroundtable'){
+					continue;
+				}
+				if(button.table){
+					button.waitTime -= this.engine.delta/2;
+					if(button.waitTime < 0){
+						const canvasInfo = this.engine.getCanvasInfo();
+						this.stats.timeup += 1;
+						button.visitorId = button.getVisitorId();
+						button.objective = this.generateCustomerNeed();
+						button.waitTimeReset(false);
+						this.statsAchieves.push(this.newAchiveStat(button.position,'timeup',vector2(canvasInfo.width*7/10,32-8)));
+						if(this.engine.assets.audio.points.paused)
+							this.engine.assets.audio.points.play();
+					}
+				}
+				this.tablehovered = this.engine.rectMouseHovered(button.position,button.size);
+				this.tablepressed = this.engine.inputs.mouse.left.pressed && this.tablehovered;
+				if(this.tablepressed){
+					console.log('button pressed:',button);
+					this.engine.assets.audio.tap.play();
+					if(button.id && button.id === 'quitgame'){
+						save();
+						this.engine.pause();
+						showMainMenu();
+					}
+					else if(button.id && button.id === 'chef'){
+						console.log('Heiii, iam ur chef!');
+						this.changeroom = true;
+						this.changeroomdir = 'bottom';
+						this.state = 2;
+						this.delay = 0;
+						break;
+					}else if(button.id && button.id === 'backchef'){
+						console.log('Heiii, iam ur chef!');
+						this.changeroom = true;
+						this.changeroomdir = 'backchef';
+						this.state = 2;
+						this.delay = 0;
+						break;
+					}else if(button.id && button.id === 'receptionist'){
+						if(this.state === 1)
+							return;
+						console.log('Heiii, iam the receptionist!');
+						this.changeroom = true;
+						this.changeroomdir = 'top';
+						this.state = 1;
+						this.delay = 0;
+						break;
+					}else if(button.id && button.id === 'servebutton'){
+						this.changeroom = true;
+						this.changeroomdir = 'top';
+						this.state = this.state === 4 ? 1 : 3;
+						this.delay = 0;
+						break;
+					}else if(button.id && button.id === 'trash'){
+						this.delay = 0;
+						if(this.state === 4){
+							this.changeroom = true;
+							this.changeroomdir = 'backchef';
+							this.state = 2;
+						}else this.setCookingMachineNull();
+						break;
+					}else if(button.flabel && button.flabel === 'cookingInput'){
+						button.imageScale = 2;
+						if(!this.cookingmachine[this.cookingMachineItemSelectorPointer].item && this.stufStok[button.img].left > 0){
+							this.cookingmachine[this.cookingMachineItemSelectorPointer].item = button.img;
+							this.cookingMachineItemSelectorPointer += 1;
+							if(this.cookingMachineItemSelectorPointer === 6){
+								this.cookingMachineItemSelectorPointer = 3;
+							}
+							this.stufStok[button.img].left -= 1;
+						}else{
+							button.color = 'red';
+							button.false = true;
+						};
+						this.delay = 0;
+						break;
+					}else if(button.flabel && button.flabel === 'storeInput'){
+						button.imageScale = 2;
+						if(this.stats.money >= this.stufStok[button.img].storePrice && this.stufStok[button.img].left < this.stufStok[button.img].leftMax){
+							this.stats.money -= this.stufStok[button.img].storePrice;
+							this.stufStok[button.img].left += 1;
+						}
+						this.delay = 0;
+						break;
+					}else if(button.flabel && button.flabel === 'upgradeInput'){
+						button.imageScale = 2;
+						if(this.stats.money >= this.stufStok[button.img].upgradePrice){
+							this.stats.money -= this.stufStok[button.img].upgradePrice;
+							this.stufStok[button.img].leftMax += this.stufStok[button.img].upgradeValue;
+							this.updateLevel();
+						}
+						this.delay = 0;
+						break;
+					}else if(button.flabel && button.flabel === 'borrowBank'){
+						button.imageScale = 2;
+						if(this.stats.levelup >= button.neededLevel){
+							this.newBorrowMoneyData({fee:button.fee,estimate:button.estimate,value:button.value});
+						}
+						this.delay = 0;
+						break;
+					}else if(button.id && button.id === 'market'){
+						console.log('Opening Market');
+						this.changeroom = true;
+						this.changeroomdir = 'market';
+						this.state = 4;
+						this.delay = 0;
+						break;
+					}else if(button.id && button.id === 'levelup'){
+						this.changeroom = true;
+						this.changeroomdir = this.state === 5 ? 'backmarket':'upstore';
+						this.state = this.state === 5 ? 4 : 5;
+						this.delay = 0;
+						break;
+					}else if(button.id && button.id === 'bank'){
+						this.changeroom = true;
+						this.changeroomdir = this.state === 6 ? 'backchef':'gobank';
+						this.state = this.state === 6 ? 2 : 6;
+						this.delay = 0;
+						break;
+					}else{
+						if(this.state === 3){
+							const valid = this.getFoodToServe(button.objective);
+							const canvasInfo = this.engine.getCanvasInfo();
+							if(valid){
+								button.color = 'green';
+								button.expression = 'senang';
+								this.statsAchieves.push(this.newAchiveStat(button.position,'senang',vector2(canvasInfo.width*3/10,32-8)));
+								this.statsAchieves.push(this.newAchiveStat(button.position,'moneyicon',vector2(canvasInfo.width*1/10,32-8)));
+								this.stats.happy += 1;
+								GamePix.updateScore(this.stats.happy);
+								this.stats.money += valid;
+								if(button.powerUp === 1){
+									this.tables.forEach((b,j)=>{
+										if(i !== j)
+											b.waitTime += button.powerUpValue;
+									})
+								}else if(button.powerUp === 2){
+									this.stats.money += button.powerUpValue * 1000;
+								}else if(button.powerUp === 3){
+									this.stats.happy += button.powerUpValue;
+								}else if(button.powerUp === 4){
+									if(this.stats.anger > button.powerUpValue)
+										this.stats.anger -= button.powerUpValue;
+									else this.stats.anger = 0;
+								}else if(button.powerUp === 5){
+									if(this.stats.timeup > button.powerUpValue)
+										this.stats.timeup -= button.powerUpValue;
+									else this.stats.timeup = 0;
+								}
+								button.waitTimeReset(true);
+							}else{
+								button.color = 'red';
+								button.expression = 'marah';
+								this.statsAchieves.push(this.newAchiveStat(button.position,'marah',vector2(canvasInfo.width*5/10,32-8)));
+								this.stats.anger += 1;
+								button.waitTimeReset(false);
+							}
+							this.engine.assets.audio.points.play();
+							button.visitorId = button.getVisitorId();
+							button.objective = this.generateCustomerNeed();
+							button.getPowerUp();
+							this.setCookingMachineNull();
+							this.state = 1;
+						}else if(this.state === 1){
+							button.showItem = true;
+						}
+						this.delay = 0;
+						if(button.bigButtonSize)
+							button.size = button.bigButtonSize;
+					}
+					break;
+				}else if(this.tablehovered){
+					if(button.tag === 'cookingmachine'){
+						if(button.flabel === 'cookingInput' || button.flabel === 'storeInput' || button.flabel === 'upgradeInput' || button.flabel === 'borrowBank'){
+							button.color = '#144272';
+							button.false = false;
+							button.imageScale = 1;
+						}
+						continue;
+					}else if(!button.id){
+						button.color = '#144272';
+						if(button.normalButtonSize)
+							button.size = button.normalButtonSize;
+						continue;
+					}
+					if(
+						(button.id === 'receptionist' && this.state === 1) ||
+						(button.id === 'chef' && this.state === 2)
+					)
+						break;
+					button.color ='#144272';
+					break;
+				}else{
+					if(button.tag === 'cookingmachine'){
+						if(button.flabel === 'cookingInput' || button.flabel === 'storeInput' || button.flabel === 'upgradeInput' || button.flabel === 'borrowBank'){
+							button.color = '#205295';
+							button.false = false;
+							button.imageScale = 1;
+						}
+						continue;
+					}else if(!button.id){
+						button.color = '#205295';
+						if(button.normalButtonSize)
+							button.size = button.normalButtonSize;
+						continue;
+					}else
+						button.color = '#205295';
+				}
+			}
+			//game over check.
+			let stuffValue = 0;
+			if(this.stats.money <= 15000){
+				for(let i in this.stufStok){
+					stuffValue += this.stufStok[i].left;
+				}
+				if(!stuffValue){
+					this.gameOver('Game over, your restaurant goes bankrupt!');
+				}
+			}
+		},
+		draw(){
+			if(!this.run)
+				return;
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,68),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.headerUi.forEach((ui)=>{
+				if(!ui.hideBox2d)
+					this.engine.g.box2d(ui.position,ui.size,ui.color,true);
+				if(ui.img)
+					this.engine.g.sprite(this.engine.assets.img[ui.img],ui.position,ui.size.scale(ui.scaleImage||1));
+				else if(ui.text){
+					this.engine.g.font = `10px gamefont`;
+					this.engine.g.textAlign = 'center';
+					this.engine.g.fillStyle = 'white';
+					// this.engine
+					let text = ui.isMoney?`Rp ${getPrice(this.stats[ui.text])}`:getPrice(this.stats[ui.text]);
+					this.engine.g.fillText(text,ui.position.x,ui.position.y);
+				}
+				if(ui.scaleImage){
+					ui.scaleImage -= ui.scaleImageMinSpeed * ui.scaleImageDir;
+					if(ui.scaleImage <= ui.scaleImageMinValue || ui.scaleImage >= ui.scaleImageMaxValue)
+						ui.scaleImageDir *= -1;
+				}
+			})
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height*8.97/10),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.tables.forEach((table)=>{
+				if(!table.showItem){
+					this.engine.g.sprite(this.engine.assets.img[table.visitorId],table.position,vector2(32*table.scaleImage,32*table.scaleImage));
+					//drawing timer
+					const waitTime = Math.round(table.waitTime);
+					this.engine.g.sprite(this.engine.assets.img[waitTime < 10 ? 'timeup1' : 'timeup'],vector2(table.position.x - 12,table.position.y + 32),vector2(16*table.scaleImage,16*table.scaleImage));
+
+					this.engine.g.font = '11px gamefont';
+					this.engine.g.textAlign = 'left';
+					this.engine.g.fillStyle = waitTime < 10 ? 'red' : 'white';
+					this.engine.g.fillText(`${waitTime}s`,table.position.x,table.position.y + 38);
+
+					//powerup
+					this.engine.g.textAlign = 'center';
+					this.engine.g.fillStyle = 'white';
+					if(table.powerUp === 1){
+						this.engine.g.fillText(`+ ${getPrice(table.powerUpValue)}s`,table.position.x,table.position.y + 38 + 20);
+					}else if(table.powerUp === 2){
+						this.engine.g.fillText(`+ Rp ${getPrice(table.powerUpValue)}.000`,table.position.x,table.position.y + 38 + 20);
+					}else if(table.powerUp === 3){
+						this.engine.g.fillText(`+ ${getPrice(table.powerUpValue)}`,table.position.x,table.position.y + 38 + 20);
+						this.engine.g.sprite(this.engine.assets.img.senang,vector2(table.position.x + 20,table.position.y + 38 + 16),vector2(16*table.scaleImage,16*table.scaleImage));
+					}else if(table.powerUp === 4){
+						this.engine.g.fillText(`- ${getPrice(table.powerUpValue)}`,table.position.x,table.position.y + 38 + 20);
+						this.engine.g.sprite(this.engine.assets.img.marah,vector2(table.position.x + 20,table.position.y + 38 + 16),vector2(16*table.scaleImage,16*table.scaleImage));
+					}else if(table.powerUp === 5){
+						this.engine.g.fillText(`- ${getPrice(table.powerUpValue)}`,table.position.x,table.position.y + 38 + 20);
+						this.engine.g.sprite(this.engine.assets.img.timeup,vector2(table.position.x + 20,table.position.y + 38 + 16),vector2(16*table.scaleImage,16*table.scaleImage));
+					}
+
+					
+
+					table.showedExpressionLeftTime -= 1;
+					if(table.showedExpressionLeftTime <= 0){
+						table.expression = null;
+						table.showedExpressionLeftTime = table.defaultShowedExpressionLeftTime;
+					}
+					table.scaleImage -= table.scaleImageMinSpeed * table.scaleImageDir;
+					if(table.scaleImage <= table.scaleImageMinValue || table.scaleImage >= table.scaleImageMaxValue)
+						table.scaleImageDir *= -1;
+					return;
+				}
+				table.objective.forEach((ob,i)=>{
+					this.engine.g.sprite(this.engine.assets.img[ob],vector2(table.position.x,(table.position.y+table.size.y/3) - table.size.y/3 * i+1),vector2(24,24));
+					table.showedTimeLeft -= 1;
+					if(table.showedTimeLeft <= 0){
+						table.showItem = false;
+						table.showedTimeLeft = table.defaultShowedTimeLeft;
+					}
+				})
+			})
+			// draw navigation controll
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height + 2.97),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height*2 - 60),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.navigations.forEach((button)=>{
+				let navImage = this.engine.assets.img[button.id];
+				if(button.id === 'trash' && this.state === 4)
+					navImage = this.engine.assets.img.chef;
+				else if(button.id === 'servebutton' && this.state === 4)
+					navImage = this.engine.assets.img.receptionist;
+				else if(button.id === 'levelup' && this.state === 5)
+					navImage = this.engine.assets.img.market;
+				this.engine.g.box2d(button.position,button.size,button.color,button.fill);
+				this.engine.g.sprite(navImage,button.position,vector2(32,32).scale(button.scaleImage||1));
+				if(button.scaleImage){
+					button.scaleImage -= button.scaleImageMinSpeed * button.scaleImageDir;
+					if(button.scaleImage <= button.scaleImageMinValue || button.scaleImage >= button.scaleImageMaxValue)
+						button.scaleImageDir *= -1;
+				}
+			})
+			//drawing cookingmachine
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height*2*9/10),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.cookingmachine.forEach((machine)=>{
+				if(machine.boxmaker || machine.false)
+					this.engine.g.box2d(machine.position,machine.size.scale(.5),machine.color,machine.fill);
+				let scale = machine.imageScale || 1;
+				if(scale !== 2)
+					scale = machine.scaleImage || 1;
+				if(machine.img || machine.item){
+					if(machine.img){
+						this.engine.g.font = '11px gamefont';
+						this.engine.g.textAlign = 'center';
+						this.engine.g.fillStyle = 'white';
+						this.engine.g.fillText(`x${this.stufStok[machine.img].left}`,machine.position.x,machine.position.y + 38);
+					}
+					this.engine.g.sprite(this.engine.assets.img[machine.img||machine.item],machine.position,vector2(32,32).scale(scale));
+				}
+				if(machine.scaleImage){
+					machine.scaleImage -= machine.scaleImageMinSpeed * machine.scaleImageDir;
+					if(machine.scaleImage <= machine.scaleImageMinValue || machine.scaleImage >= machine.scaleImageMaxValue)
+						machine.scaleImageDir *= -1;
+				}
+			})
+			//drawing store
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height*3*9.01/10),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.store.forEach(item=>{
+				if(item.boxmaker || item.false)
+					this.engine.g.box2d(item.position,item.size,item.color,item.fill);
+				let scale = item.imageScale || 1;
+				if(scale !== 2)
+					scale = item.scaleImage || 1;
+				if(item.img || item.item){
+					if(item.img){
+						this.engine.g.font = '11px gamefont';
+						this.engine.g.textAlign = 'center';
+						this.engine.g.fillStyle = 'white';
+						this.engine.g.fillText(`Rp ${getPrice(this.stufStok[item.img].storePrice)}`,item.position.x,item.position.y + 38);
+						this.engine.g.fillText(`Stok: ${this.stufStok[item.img].left}/${this.stufStok[item.img].leftMax}`,item.position.x,item.position.y + 54);
+					}
+					this.engine.g.sprite(this.engine.assets.img[item.img||item.item],item.position,vector2(32*scale,32*scale));
+				}
+				if(item.scaleImage){
+					item.scaleImage -= item.scaleImageMinSpeed * item.scaleImageDir;
+					if(item.scaleImage <= item.scaleImageMinValue || item.scaleImage >= item.scaleImageMaxValue)
+						item.scaleImageDir *= -1;
+				}
+			})
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height*3 - 124),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height*4 - 250),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.upgradeStore.forEach(item=>{
+				if(item.boxmaker || item.false)
+					this.engine.g.box2d(item.position,item.size,item.color,item.fill);
+				let scale = item.imageScale || 1;
+				if(scale !== 2)
+					scale = item.scaleImage || 1;
+				if(item.img || item.item){
+					if(item.img){
+						this.engine.g.font = '11px gamefont';
+						this.engine.g.textAlign = 'center';
+						this.engine.g.fillStyle = 'white';
+						this.engine.g.fillText(`Rp ${getPrice(this.stufStok[item.img].upgradePrice)}`,item.position.x,item.position.y + 38);
+						this.engine.g.fillText(`maxStok += ${this.stufStok[item.img].upgradeValue}`,item.position.x,item.position.y + 54);
+						this.engine.g.fillText(`maxStok: ${this.stufStok[item.img].leftMax}`,item.position.x,item.position.y + 54 + 12);
+					}
+					this.engine.g.sprite(this.engine.assets.img[item.img||item.item],item.position,vector2(32*scale,32*scale));
+				}
+				if(item.scaleImage){
+					item.scaleImage -= item.scaleImageMinSpeed * item.scaleImageDir;
+					if(item.scaleImage <= item.scaleImageMinValue || item.scaleImage >= item.scaleImageMaxValue)
+						item.scaleImageDir *= -1;
+				}
+			})
+			this.engine.g.box2d(vector2(this.engine.getCanvasInfo().width/2,this.engine.getCanvasInfo().height*4 - 184),vector2(this.engine.getCanvasInfo().width,1),'white',true);
+			this.bank.forEach(item=>{
+				if(item.boxmaker || item.false)
+					this.engine.g.box2d(item.position,item.size,item.color,item.fill);
+				let scale = item.imageScale || 1;
+				if(scale !== 2)
+					scale = item.scaleImage || 1;
+				this.engine.g.font = '14px gamefont';
+				this.engine.g.textAlign = 'center';
+				this.engine.g.fillStyle = 'white';
+				this.engine.g.fillText(`+ Rp ${getPrice(item.value)}`,item.position.x,item.position.y + 38);
+				this.engine.g.fillText(`Level >= ${item.neededLevel}`,item.position.x,item.position.y + 54 + 12);
+				this.engine.g.fillText(`Fee Rp ${getPrice(item.fee||1000)}`,item.position.x,item.position.y + 54 + 34);
+				this.engine.g.fillText(`Estimate ${getPrice(item.estimate||1000)}s`,item.position.x,item.position.y + 54 + 54);
+					this.engine.g.sprite(this.engine.assets.img.moneyicon,item.position,vector2(32*scale,32*scale));
+				if(item.scaleImage){
+					item.scaleImage -= item.scaleImageMinSpeed * item.scaleImageDir;
+					if(item.scaleImage <= item.scaleImageMinValue || item.scaleImage >= item.scaleImageMaxValue)
+						item.scaleImageDir *= -1;
+				}
+			})
+			//drawing stats achievement
+			this.statsAchieves.forEach(stat=>{
+				if(stat.disapper)
+					return;
+				this.engine.g.sprite(this.engine.assets.img[stat.label],stat.position,stat.size);
+			})
+			if(!this.engine.mobileDevice)
+				this.cursor.draw(this);
+		}
+	}))
+	engine.init(()=>{GamePix.loaded()});
+</script>
