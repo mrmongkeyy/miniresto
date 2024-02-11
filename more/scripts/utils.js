@@ -12,6 +12,12 @@ const toInject = {
 			this.appendChild(child);
 			if(child.onadded)
 				child.onadded();
+		},
+		show(param='flex'){
+			this.style.display = param;
+		},
+		hide(){
+			this.style.display = 'none';
 		}
 	}
 const makeElement = (name='div',config={})=>{
